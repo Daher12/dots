@@ -1,0 +1,183 @@
+{
+    "layer": "top", // Waybar at top layer
+    "position": "top", // Waybar position (top|bottom|left|right)
+    "gtk-layer-shell": "true",
+    // "height": 43, // Waybar height (to be removed for auto height)
+    // "width": 2560, // Waybar width
+    "spacing": 0, // Gaps between modules (0px) Adjusted in the css
+    "margin-top": 0,
+    //"margin-bottom":-10,
+    "margin-left": 10,
+    "margin-right": 10,
+    // Choose the order of the modules
+    "modules-left": [
+        "cpu",
+        "memory",
+        "disk",
+    ],
+    "modules-center": [
+        "clock",
+        "hyprland/workspaces"
+    ],
+    "modules-right": [
+        "network",
+        "bluetooth",
+        "tray",
+        "pulseaudio",
+//        "wireplumber",
+        "backlight",
+        "battery",
+    ],
+    "cpu": {
+        "format":" {usage}%",
+        "tooltip": true,
+        "on-click": "kitty -1 -e 'btop'",
+        "interval": 2
+    },
+    "memory": {
+        "format": " {}%",
+        "tooltip": true,
+        "on-click": "kitty -1 -e 'btop'",
+        "interval": 4
+    },
+    "disk": {
+	"path": "/home",
+        "format": " {percentage_used}%",
+        "tooltip": true,
+        "on-click": "kitty -1 -e 'btop'",
+        "interval": 60
+    },
+
+
+    "network": {
+        // "interface": "wlp2*", // (Optional) To force the use of this interface
+        "format": "{icon}",
+        "format-disconnected": "{icon} keine Verbindung",
+        "format-linked": " {ifname} (No IP)",
+        "format-alt": "↕{bandwidthUpBytes} | ↕{bandwidthDownBytes}",
+        "tooltip-format": "{ifname}: {ipaddr}/{cidr}  {gwaddr}",
+        "tooltip-format-wifi": "{icon} {essid} ({signalStrength}%)",
+        "tooltip-format-ethernet": "{icon} {ipaddr}/{cidr}",
+        "tooltip-format-disconnected": "{icon} keine Verbindung",
+        "on-click-right": "iwgtk",
+        "format-icons":{
+            "ethernet": "󰈀 ",
+            "disconnected": " ",
+            "wifi":[
+                "󰤯 ",
+                "󰤟 ",
+                "󰤢 ",
+                "󰤥 ",
+                "󰤨 "
+            ]
+        },
+        "interval": 125
+    },
+        "bluetooth": {
+        // "controller": "controller1", // specify the alias of the controller if there are more than 1 on the system
+        // "format": "󰂯 {status}",
+        // format-* handles every state, so default format is not necessary.
+        "format-on": "󰂯",
+        "format-off": "󰂲",
+        "format-disabled": "󰂲", // an empty format will hide the module
+        "format-connected": "󰂱 {num_connections}",
+        // "tooltip-format": "{controller_alias}\t{controller_address}",
+        // "tooltip-format-connected": "{controller_alias}\t{controller_address}\n\n{device_enumerate}",
+        "tooltip-format-connected": "{device_enumerate}",
+        "tooltip-format-enumerate-connected": "{device_alias}\t{device_address}",         
+        "on-click": "blueman-manager", 
+        },
+    "pulseaudio": {
+        // "scroll-step": 1, // %, can be a float
+        "format":"<span rise='-6000'>{icon} </span><span font='10.5' rise='-6000' weight='700' >{volume}%</span>", // {format_source}
+        "format-bluetooth": "{icon} {volume}%", // {format_source}
+        "format-bluetooth-muted": "󰝟", // {format_source}
+        "format-muted": "<span font='12'>󰝟</span>", // {format_source}
+        "format-source": "{volume}% 󰍬",
+        "format-source-muted": "󰍭",
+        "format-icons": {
+            "default": [
+                "",
+		"",
+                " "
+            ]
+        },
+       },
+    "wireplumber": {
+        // "scroll-step": 1, // %, can be a float
+        "format":"<span rise='-6000'>{icon} </span><span font='10.5' rise='-6000' weight='700' >{volume}%</span>", // {format_source}
+        "format-bluetooth": "{icon} {volume}%", // {format_source}
+        "format-bluetooth-muted": "󰝟", // {format_source}
+        "format-muted": "<span font='12'>󰝟</span>", // {format_source}
+        "format-source": "{volume}% 󰍬",
+        "format-source-muted": "󰍭",
+        "format-icons": {
+            "default": [
+                "",
+                "",
+                " "
+            ]
+        },
+       },
+    "backlight": {
+        // "device": "acpi_video1",
+        "format": "{icon} {percent}%",
+        "tooltip": false,
+        "format-icons": [
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            ""
+        ],
+        "interval": 30
+    },
+    "battery": {
+        "states": {
+            "good": 100,
+            "warning": 30,
+            "critical": 10
+        },
+        "format":"{icon} {capacity}%",
+        "format-charging": " {capacity}%",
+        "format-plugged": "  {capacity}%",
+        "format-alt": "{icon}  {time}",
+        // "format-good": "", // An empty format will hide the module
+        "format-full": "{capacity}%",
+        "format-icons": [
+            " ",
+            " ",
+            " ",
+            " ",
+            " ",
+            " ",
+            " ",
+            " ",
+            " ",
+        ],
+        "interval": 20
+    },
+    "tray": {
+        "icon-size": 15,
+        "spacing": 15
+    },
+    "clock": {
+        "timezone": "Europe/Berlin",
+        "format": " {:L%d %a %H:%M}",
+        //"format": "   {:L%%d %A %H:%M}",
+        //"format": "   {:%a %b %d %Y | %H:%M}",
+        "format-alt": " {:L%A %B %d %Y | %H:%M}",
+        "tooltip-format": "<big>{:L%Y %B}</big>\n<tt><small>{calendar}</small></tt>",
+        "calendar-weeks-pos": "right",
+        "today-format": "<span color='#f38ba8'><b><u>{}</u></b></span>",
+        "format-calendar": "<span color='#f2cdcd'><b>{}</b></span>",
+        "format-calendar-weeks": "<span color='#94e2d5'><b>W{:%U}</b></span>",
+        "format-calendar-weekdays": "<span color='#f9e2af'><b>{}</b></span>",
+        "locale": "de_DE.UTF-8",
+        "interval": 60
+    },
+}
