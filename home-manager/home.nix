@@ -24,8 +24,14 @@
 
      alias ls='ls --color=auto'
      PS1='[\u@\h \W]\$ '
+
+    if uwsm check may-start; then
+    exec uwsm start hyprland.desktop &>/dev/null
+    fi
+
     '';    
   };
+
 
   ## zoxide ##
   programs.zoxide.enable = true;
@@ -35,6 +41,7 @@
 
   programs.waybar.enable = true;
   home.sessionVariables.NIXOS_OZONE_WL = "1";
+
   
   ## packages ##
 
@@ -45,30 +52,31 @@
 
  ## Graphics > nixgl ##
 
-    pkgs.nixgl.nixGLIntel
+#    pkgs.nixgl.nixGLIntel
     
 
  ## General ##
-    pkgs.firefox-esr
+#    pkgs.firefox-esr
+    pkgs.isd
     pkgs.mosh
     pkgs.btop
     pkgs.fastfetch
-    pkgs.libreoffice-fresh
-    pkgs.unrar
-    pkgs.unzip
-    pkgs.zip
+#    pkgs.libreoffice-fresh
+#    pkgs.unrar
+#    pkgs.unzip
+#    pkgs.zip
     pkgs.android-file-transfer
     pkgs.remmina
-    pkgs.moonlight-qt
-    pkgs.clapper
-    pkgs.trayscale
-    pkgs.android-tools
-    pkgs.rpi-imager
+#    pkgs.moonlight-qt
+#    pkgs.clapper
+#    pkgs.trayscale
+#    pkgs.android-tools
+#    pkgs.rpi-imager
 #    pkgs.blueman
-    pkgs.iwgtk
+#    pkgs.iwgtk
     pkgs.mkvtoolnix
     pkgs.gnumake
-    pkgs.git
+#    pkgs.git
     pkgs.eza
     pkgs.ugm
     pkgs.darkman
@@ -76,16 +84,16 @@
  ## Hyprland ##
 #    pkgs.grim
 #    pkgs.slurp
-    pkgs.hyprshot
+#    pkgs.hyprshot
     pkgs.brightnessctl
-    pkgs.rofi-wayland
+#    pkgs.rofi-wayland
     pkgs.wl-clipboard
-    pkgs.gnome-text-editor
-    pkgs.gnome-calculator
+#    pkgs.gnome-text-editor
+#    pkgs.gnome-calculator
     pkgs.dunst
 
   ## Yazi ##
-#    pkgs.yazi  # installed via xbps
+    pkgs.yazi  # installed via xbps
     pkgs.jq
     pkgs.poppler
     pkgs.fd
@@ -93,7 +101,6 @@
     pkgs.fzf
     pkgs.resvg
     pkgs.imagemagick
-    pkgs.ffmpeg
 
     # # It is sometimes useful to fine-tune packages, for example, by applying
     # # overrides. You can do that directly here, just don't forget the

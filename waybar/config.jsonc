@@ -1,5 +1,5 @@
 {
-    "layer": "top", // Waybar at top layer
+    "layer": "bottom", // Waybar at top layer
     "position": "top", // Waybar position (top|bottom|left|right)
     "gtk-layer-shell": "true",
     // "height": 43, // Waybar height (to be removed for auto height)
@@ -9,6 +9,9 @@
     //"margin-bottom":-10,
     "margin-left": 10,
     "margin-right": 10,
+    "hyprland/window": {
+    "separate-outputs": true
+     },
     // Choose the order of the modules
     "modules-left": [
         "cpu",
@@ -59,7 +62,7 @@
         "tooltip-format-wifi": "{icon} {essid} ({signalStrength}%)",
         "tooltip-format-ethernet": "{icon} {ipaddr}/{cidr}",
         "tooltip-format-disconnected": "{icon} keine Verbindung",
-        "on-click-right": "iwgtk",
+        "on-click-right": "kitty -1 -e 'impala'",
         "format-icons":{
             "ethernet": "󰈀 ",
             "disconnected": " ",
@@ -85,7 +88,8 @@
         // "tooltip-format-connected": "{controller_alias}\t{controller_address}\n\n{device_enumerate}",
         "tooltip-format-connected": "{device_enumerate}",
         "tooltip-format-enumerate-connected": "{device_alias}\t{device_address}",         
-        "on-click": "blueman-manager", 
+        "on-click": "bash ~/.config/waybar/bluetooth.sh", 
+        "on-click-right": "blueman-manager", 
         },
     "pulseaudio": {
         // "scroll-step": 1, // %, can be a float
