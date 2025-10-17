@@ -1,0 +1,263 @@
+{ config, pkgs, lib, ... }:
+
+{
+  ####################################################
+  # 1. System Identity & Localization
+  ####################################################
+  networking.hostName = "nixos";
+  i18n.defaultLocale = "de_DE.UTF-8";
+  i18n.extraLocaleSettings = {
+    LC_MEASUREMENT = "de_DE.UTF-8";
+    LC_MONETARY = "de_DE.UTF-8";
+    LC_NUMERIC = "de_DE.UTF-8";
+    LC_TIME = "de_DE.UTF-8";
+  };
+  time.timeZone = "Europe/Berlin";
+  console.keyMap = "de";
+
+  ####################################################
+  # 2. Bootloader & Kernel
+  ####################################################
+  boot.loader.systemd-boot.enable = true;
+  boot.loader.systemd-boot.configurationLimit = 5;
+  boot.loader.efi.canTouchEfiVariables = true;
+
+  # Consider switching to linuxPackages_zen for max responsiveness
+  boot.kernelPackages = pkgs.linuxPackages_latest;
+
+  # Optimize boot and kernel parameters for performance and power savings
+  boot.tmpOnTmpfs = true;
+  boot.initrd.systemd.enable = true;
+  
+  boot.kernel.sysctl = {
+    "vm.swappiness" = 10;
+    "vm.vfs_cache_pressure" = 50;
+    "vm.dirty_ratio" = 10;
+    "vm.dirty_background_ratio" = 3;
+    "kernel.nmi_watchdog" = 0;
+    "kernel.unprivileged_userns_clone" = 1;
+    "kernel.printk" = "3 3 3 3";
+    "kernel.kptr_restrict" = 2;
+    "kernel.kexec_load_disabled" = 1;
+    "fs.nr_open" = 2097152;
+    "fs.file-max" = 2097152;
+    "vm.page-cluster" = 0;  # Reduce background page clustering for lower latency
+  };
+
+  boot.kernelParams = [
+    "quiet"
+    "splash"
+    "udev.log_priority=3"
+    "rd.systemd.show_status=auto"
+    "systemd.unified_cgroup_hierarchy=1"
+    "rd.udev.log_level=0"
+    "intel_pstate=active"          # Enable Intel hardware p-states
+    "i915.enable_psr=1"            # Intel GPU Panel Self Refresh
+    "i915.enable_rc6=1"            # Intel GPU power-saving RC6 state
+    "i915.enable_fbc=1"            # Intel Frame Buffer Compression
+  ];
+
+  boot.plymouth = {
+    enable = true;
+    theme = "bgrt";
+  };
+  boot.consoleLogLevel = 3;
+  boot.initrd.verbose = false;
+  boot.loader.timeout = 0;
+
+  ####################################################
+  # 3. Nix & Package Management
+  ####################################################
+  nixpkgs.config.allowUnfree = true;
+
+  nixpkgs.overlays = [
+    (final: prev: {
+      intel-vaapi-driver = prev.intel-vaapi-driver.override { enableHybridCodec = true; };
+    })
+  ];
+
+  nix.gc = {
+    automatic = true;
+    dates = "daily";
+    options = "--delete-older-than 7d";
+  };
+  nix.optimise.automatic = true;
+
+  nix.settings = {
+    experimental-features = [ "nix-command" "flakes" ];
+    auto-optimise-store = true;
+    sandbox = true;
+    max-jobs = "auto";
+    cores = 0;
+    trusted-users = [ "root" "dk" ];
+    substituters = [
+      "https://cache.nixos.org"
+      "https://nix-community.cachix.org"
+    ];
+    trusted-public-keys = [
+      "nix-community.cachix.org-1:m1Zpr36Fn0JpTxJ6n+sl1DhN2l7Qp0v1RjX8qXk0j8U="
+    ];
+    keep-outputs = true;
+    keep-derivations = true;
+  };
+
+  nix.extraOptions = ''
+    experimental-features = nix-command flakes
+  '';
+
+  environment.systemPackages = with pkgs; [
+    ghostty eza fastfetch zoxide btop yazi mosh git nix-index-update
+    gnome-tweaks gnome-browser-connector nautilus loupe gnome-text-editor gnome-calculator file-roller
+    unzip unrar zstd lz4 gnumake gtk-engine-murrine gnome-themes-extra
+  ];
+
+  nix.package = pkgs.nixFlakes;
+
+  ####################################################
+  # 4. User Configuration & Shell
+  ####################################################
+  users.users.dk = {
+    isNormalUser = true;
+    description = "David";
+    extraGroups = [ "networkmanager" "wheel" ];
+  };
+
+  users.defaultUserShell = pkgs.zsh;
+  environment.shells = [ pkgs.zsh ];
+
+  programs.zsh = {
+    enable = true;
+    autosuggestions.enable = true;
+    syntaxHighlighting.enable = true;
+    ohMyZsh = {
+      enable = true;
+      plugins = [ "git" "zoxide" ];
+      theme = "agnoster";
+    };
+  };
+
+  ####################################################
+  # 5. Hardware & Graphics
+  ####################################################
+  hardware.opengl = {
+    enable = true;
+    driSupport32Bit = true;
+    extraPackages = with pkgs; [
+      intel-media-driver
+      intel-vaapi-driver
+      libva-utils
+      libvdpau-va-gl
+      vulkan-tools
+      vulkan-validation-layers
+      mesa.drivers
+    ];
+  };
+
+  hardware.cpu.intel.updateMicrocode = true;
+
+  environment.variables = {
+    LIBVA_DRIVER_NAME = "iHD";
+    VDPAU_DRIVER = "va_gl";
+    __GL_VRR_ALLOWED = "1";
+  };
+
+  ####################################################
+  # 6. Power, Firmware, and Performance
+  ####################################################
+  services.thermald.enable = true;
+  services.fwupd.enable = true;
+
+  # Use auto-cpufreq with balanced battery/charger profiles
+  services.auto-cpufreq.enable = true;
+  services.auto-cpufreq.settings = {
+    battery.profile = "balanced";
+    charger.profile = "performance";
+  };
+  services.tlp.enable = lib.mkForce false;
+
+  zramSwap = {
+    enable = true;
+    memoryPercent = 25;
+    algorithm = "zstd";
+  };
+
+  # Use BFQ I/O scheduler for responsiveness on SSDs
+  services.udev.extraRules = ''
+    ACTION=="add|change", KERNEL=="sd[a-z]", ATTR{queue/scheduler}="bfq"
+    ACTION=="add", SUBSYSTEM=="usb", TEST=="power/control", ATTR{power/control}="auto"
+  '';
+
+  services.fstrim.enable = true;
+
+  ####################################################
+  # 7. Audio
+  ####################################################
+  services.pulseaudio.enable = false;
+  security.rtkit.enable = true;
+  services.pipewire = {
+    enable = true;
+    alsa.enable = true;
+    alsa.support32Bit = true;
+    pulse.enable = true;
+  };
+
+  ####################################################
+  # 8. Networking
+  ####################################################
+  networking.networkmanager = {
+    enable = true;
+    wifi.backend = "iwd";
+    wifi.powersave = "default";
+  };
+  networking.firewall.enable = true;
+
+  ####################################################
+  # 9. GNOME Wayland Desktop
+  ####################################################
+  services.xserver = {
+    enable = true;
+    displayManager.gdm.enable = true;
+    displayManager.gdm.wayland = true;
+    desktopManager.gnome.enable = true;
+  };
+
+  # Disable heavy GNOME core apps for performance
+  services.gnome.core-apps.enable = false;
+  services.gnome.core-utilities.enable = false;
+  services.gnome.evolution-data-server.enable = lib.mkForce false;
+  services.gnome.gnome-online-accounts.enable = lib.mkForce false;
+  services.gvfs.enable = true;
+  services.power-profiles-daemon.enable = false;
+
+  # Enable GNOME settings daemon power plugin for idle dimming
+  services.gnome.settingsDaemon.power.enable = true;
+
+  # Disable tracker to reduce background IO and CPU
+  services.gnome.tracker-miners.enable = false;
+  services.gnome.tracker.enable = false;
+
+  ####################################################
+  # 10. Journald Optimization
+  ####################################################
+  services.journald.extraConfig = ''
+    Storage=volatile
+    Compress=yes
+    SystemMaxUse=50M
+    RuntimeMaxUse=50M
+  '';
+
+  ####################################################
+  # 11. Misc Services
+  ####################################################
+  services.tailscale = {
+    enable = true;
+    useRoutingFeatures = "client";
+  };
+  services.switcherooControl.enable = true;
+
+  ####################################################
+  # 12. State Version
+  ####################################################
+  system.stateVersion = "25.05";
+}
+
